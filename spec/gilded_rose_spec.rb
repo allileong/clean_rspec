@@ -2,19 +2,22 @@ require "spec_helper"
 require "./lib/gilded_rose"
 
 RSpec.describe GildedRose do
+  subject(:gilded_rose) { described_class.new }
   let(:name) { 'Normal Item' }
 
-  it "is a gilded rose" do
-    expect(subject).to be_a(GildedRose)
-  end
+  it { is_expected.to be_a(GildedRose) }
 
-  it "normal item after sell date" do
-    gr = GildedRose.new(name: "Normal Item", days_remaining: -10, quality: 10)
+  describe "#tick" do
+    context "when a normal item is past its sell date" do
+      let(:gr) { described_class.new(name: "Normal Item", days_remaining: -10, quality: 10) }
 
-    gr.tick
+      it('decreases in quality with each day that passes') do
+        gr.tick
 
-    expect(gr.days_remaining).to eq(-11)
-    expect(gr.quality).to eq(8)
+        expect(gr.days_remaining).to eq(-11)
+        expect(gr.quality).to eq(8)
+      end
+    end
   end
 
   shared_examples :gilded_rose do |name, days_remaining, quality, expected_days_remaining, expected_quality|
@@ -25,25 +28,25 @@ RSpec.describe GildedRose do
     end
   end
 
-  it "normal item before sell date" do
-    gr = GildedRose.new(name: "Normal Item", days_remaining: 5, quality: 10)
-    gr2 = GildedRose.new(name: "Normal Item", days_remaining: -1, quality: 8)
-    gr3 = GildedRose.new(name: "Normal Item", days_remaining: 1, quality: 12)
+  context "when approaching the sell date" do
+    let (:gr) { GildedRose.new(name: "Normal Item", days_remaining: 5, quality: 10) }
 
-    gr.tick
+    it "quality decreases by one each day" do
+      gr.tick
 
-    expect(gr).to have_attributes(days_remaining: 4, quality: 9)
+      expect(gr).to have_attributes(days_remaining: 4, quality: 9)
+    end
   end
 
-  it "normal item on sell date" do
-    gr = GildedRose.new(name: "Normal Item", days_remaining: 0, quality: 10)
+  context "going beyond the sell date of a normal item" do
+    let(:gr) { GildedRose.new(name: "Normal Item", days_remaining: 0, quality: 10) }
 
-    expect(gr).to be_instance_of(GildedRose) 
+    it 'decreases its quality' do
+      gr.tick
 
-    gr.tick
-
-    expect(gr.days_remaining).to eq(-1)
-    expect(gr.quality).to eq(8)
+      expect(gr.days_remaining).to eq(-1)
+      expect(gr.quality).to eq(8)
+    end
   end
 
   it "normal item of zero quality" do
@@ -190,7 +193,7 @@ RSpec.describe GildedRose do
 
   it "backstage passes after sell date" do
     gr = GildedRose.new(name: "Backstage passes to a TAFKAL80ETC concert", days_remaining: -10, quality: 10)
-# 
+#
     gr.tick
 
     expect(gr.days_remaining).to eq(-11)
